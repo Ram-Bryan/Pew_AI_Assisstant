@@ -1,0 +1,60 @@
+name: Build Pew APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Java (needed by Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Expo prebuild (generates the android/ Gradle project)
+        run: npx expo prebuild --platform android --no-install && npm i
+
+      - name: Decode signing keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+
+      - name: Build signed release APK
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=release.keystore \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pew-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+# SETUP NOTES (one-time):
+# 1. Generate a keystore locally:
+#    keytool -genkeypair -v -keystore release.keystore -alias pew-key -keyalg RSA -keysize 2048 -validity 10000
+# 2. Base64-encode it (Windows): certutil -encode release.keystore keystore.b64
+#    (strip the BEGIN/END CERTIFICATE lines before pasting into the secret)
+# 3. Add repo secrets: ANDROID_KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
