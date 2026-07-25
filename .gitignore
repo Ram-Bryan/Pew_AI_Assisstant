@@ -41,3 +41,6 @@ yarn-error.*
 /android
 
 /backend/storage/
+
+tree.ps1
+tree.txt
