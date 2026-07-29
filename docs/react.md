@@ -47,6 +47,17 @@ const setCount = result[1];   // The setter function
 
 ```
 
+## Loops:
+```tsx
+We use map:
+
+      {people.map((person) => (
+        <PersonCard key={person.id} person={person} />
+      ))}
+
+
+```
+
 ## useEffect:
 Code that runs when something appears, disappears, or changes
 
@@ -167,5 +178,34 @@ return (
   </View>
 );
 
+
+```
+
+
+### Pass callback
+
+```tsx
+
+// The prop
+interface TdlCardProps {
+    task: Task;
+    todos: Task[];
+    onDelete: (taskId: number) => void;  // Add callback prop
+}
+
+// The component
+<Pressable 
+                onPress={() => onDelete(task.id)}  // Call the parent's handler
+                className="bg-red-500 px-6 py-3 rounded-lg"
+            >
+                <Text>Delete</Text>
+            </Pressable>
+
+
+// The View
+const handleDeleteTask = (taskId: number) => {
+        const updatedTodos = deleteTask(tdl, taskId);  // Get filtered array
+        setTdl(updatedTodos);  // Update state - THIS TRIGGERS RE-RENDER!
+};
 
 ```

@@ -44,10 +44,18 @@ const anything: any = "could be anything";
 
 const alice: Person =   { id: 1, name: 'Alice', age: 28, email: 'alice@example.com' };
 
-
-
+// adding
 let people: Person[] = [];
 people.push(people);
+
+// deleting by creating a new array from it
+const tasks = [
+    { id: 1, content: "Task 1" },
+    { id: 2, content: "Task 2" },
+    { id: 3, content: "Task 3" }
+];
+const updatedTasks = tasks.filter(task => task.id !== 2);
+
 
 
 ```
