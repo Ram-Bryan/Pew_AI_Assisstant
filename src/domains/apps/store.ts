@@ -2,7 +2,15 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import type { AppWithStatus, ModelInfo } from './types';
 
 export async function listApps(db: SQLiteDatabase): Promise<AppWithStatus[]> {
-  return db.getAllAsync<AppWithStatus>(
+  const rows = await db.getAllAsync<{
+    id: number;
+    name: string;
+    description: string | null;
+    icon: string;
+    auth_type: AppWithStatus['auth_type'];
+    is_enabled: number;
+    is_ai: number;
+  }>(
     `SELECT a.id, a.name, a.description, a.icon, a.auth_type,
             COALESCE(cas.is_enabled, 0) AS is_enabled,
             CASE WHEN p.id IS NULL THEN 0 ELSE 1 END AS is_ai
@@ -11,6 +19,7 @@ export async function listApps(db: SQLiteDatabase): Promise<AppWithStatus[]> {
      LEFT JOIN providers p ON p.id_app = a.id
      ORDER BY a.id`
   );
+  return rows.map((r) => ({ ...r, is_enabled: !!r.is_enabled, is_ai: !!r.is_ai }));
 }
 
 export async function setAppEnabled(db: SQLiteDatabase, appId: number, enabled: boolean): Promise<void> {
