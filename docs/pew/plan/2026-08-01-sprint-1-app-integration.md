@@ -56,6 +56,8 @@
 - `src/domains/apps/hooks.ts` — React Query hooks
 - `src/domains/providers/api.ts` — `discoverModels`
 - `src/domains/apps/components/AppList.tsx`, `AppToggle.tsx`, `CredentialModal.tsx`, `FilterBar.tsx`
+- `src/domains/apps/appIcons.ts` — slug → bundled icon map (static `require`), monogram fallback for unknown slugs
+- `assets/icons/apps/<slug>.png` — 11 bundled 512×512 transparent brand icons (keyed by `SEED_APPS.icon`); `assets/icons/apps/sources/` holds the original SVGs for regeneration
 
 **Frontend (modify):**
 - `app/_layout.tsx` — Providers + global.css import + Stack
@@ -1347,19 +1349,40 @@ git commit -m "feat: add apps list, toggle, and store queries"
 ### Task 11: Apps list screen (Frontend 1.4)
 
 **Files:**
-- Create: `src/domains/apps/components/AppList.tsx`
+- Create: `src/domains/apps/components/AppList.tsx`, `src/domains/apps/appIcons.ts`
 - Modify: `app/(tabs)/apps.tsx` (empty stub)
 
 **Interfaces:**
 - Consumes: `useAppsList` (Task 10), `AppWithStatus` (Task 9), expo-router `router.push`
 - Produces: `export function AppList({ items, isLoading }: { items: AppWithStatus[]; isLoading: boolean })` — FlatList of rows (icon, name, description, AI badge, enabled pill) that navigate to `/apps/<id>`
 
-- [ ] **Step 1: Write AppList component** — `src/domains/apps/components/AppList.tsx`
+- [ ] **Step 1: Write the icon map + AppList component** — `src/domains/apps/appIcons.ts`, `src/domains/apps/components/AppList.tsx`
+
+`appIcons.ts` — bundled 512×512 transparent PNGs under `assets/icons/apps/`, keyed by the `icon` slug. `require()` needs static paths, so the map is explicit; add a line when a new app ships. Unknown slugs fall back to the monogram in the row.
+
+```ts
+import type { ImageSourcePropType } from 'react-native';
+
+export const APP_ICONS: Record<string, ImageSourcePropType> = {
+  openai: require('../../../assets/icons/apps/openai.png'),
+  anthropic: require('../../../assets/icons/apps/anthropic.png'),
+  deepseek: require('../../../assets/icons/apps/deepseek.png'),
+  gmail: require('../../../assets/icons/apps/gmail.png'),
+  messenger: require('../../../assets/icons/apps/messenger.png'),
+  whatsapp: require('../../../assets/icons/apps/whatsapp.png'),
+  gemini: require('../../../assets/icons/apps/gemini.png'),
+  groq: require('../../../assets/icons/apps/groq.png'),
+  mistral: require('../../../assets/icons/apps/mistral.png'),
+  cohere: require('../../../assets/icons/apps/cohere.png'),
+  openrouter: require('../../../assets/icons/apps/openrouter.png'),
+};
+```
 
 ```tsx
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, Text, View } from 'react-native';
 import type { AppWithStatus } from '../types';
+import { APP_ICONS } from './appIcons';
 
 export function AppList({ items, isLoading }: { items: AppWithStatus[]; isLoading: boolean }) {
   const router = useRouter();
@@ -1376,8 +1399,12 @@ export function AppList({ items, isLoading }: { items: AppWithStatus[]; isLoadin
           className="mb-3 flex-row items-center rounded-2xl border border-gray-100 bg-white p-4"
           onPress={() => router.push(`/apps/${item.id}`)}
         >
-          <View className="mr-3 h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-            <Text className="text-xl font-bold text-gray-700">{item.icon[0].toUpperCase()}</Text>
+          <View className="mr-3 h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-gray-100">
+            {APP_ICONS[item.icon] ? (
+              <Image source={APP_ICONS[item.icon]} className="h-12 w-12" resizeMode="contain" />
+            ) : (
+              <Text className="text-xl font-bold text-gray-700">{item.icon[0].toUpperCase()}</Text>
+            )}
           </View>
           <View className="flex-1">
             <Text className="text-base font-semibold text-gray-900">{item.name}</Text>
@@ -1424,12 +1451,12 @@ Expected: no errors.
 
 - [ ] **Step 4: Manual QA**
 
-Run: `pnpm android`, open the Apps tab. Expected: 11 rows (OpenAI, Anthropic, DeepSeek, Gmail, Messenger, WhatsApp, Google Gemini, Groq, Mistral AI, OpenRouter, Cohere), each with an AI/App badge and a gray "Disabled" pill. Tapping a row navigates to `/apps/<id>` (the detail screen is Task 13; it may be blank — fine).
+Run: `pnpm android`, open the Apps tab. Expected: 11 rows (OpenAI, Anthropic, DeepSeek, Gmail, Messenger, WhatsApp, Google Gemini, Groq, Mistral AI, OpenRouter, Cohere), each showing its bundled brand icon, an AI/App badge, and a gray "Disabled" pill. Tapping a row navigates to `/apps/<id>` (the detail screen is Task 13; it may be blank — fine).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/domains/apps/components/AppList.tsx "app/(tabs)/apps.tsx"
+git add src/domains/apps/components/AppList.tsx src/domains/apps/appIcons.ts assets/icons/apps "app/(tabs)/apps.tsx"
 git commit -m "feat: add apps list screen with status badges"
 ```
 
