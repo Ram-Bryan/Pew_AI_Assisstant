@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Linking, Pressable, Text, View } from 'react-native';
 import { AppToggle } from '../../src/domains/apps/components/AppToggle';
+import { CredentialModal } from '../../src/domains/apps/components/CredentialModal';
 import { SEED_APPS } from '../../src/constants/apps';
 import { useAppsList } from '../../src/domains/apps/hooks';
 
@@ -10,6 +12,7 @@ export default function AppDetailScreen() {
   const { data } = useAppsList();
   const app = data?.find((a) => a.id === id);
   const meta = SEED_APPS.find((a) => a.id === id);
+  const [modalOpen, setModalOpen] = useState(false);
 
   if (!app || !meta) {
     return (
@@ -29,6 +32,15 @@ export default function AppDetailScreen() {
         </Pressable>
       ) : null}
       <AppToggle app={app} />
+      {app.auth_type === 'api_key' ? (
+        <Pressable
+          className="mt-6 rounded-xl bg-primary py-3"
+          onPress={() => setModalOpen(true)}
+        >
+          <Text className="text-center font-semibold text-white">Connect</Text>
+        </Pressable>
+      ) : null}
+      <CredentialModal appId={app.id} open={modalOpen} onClose={() => setModalOpen(false)} />
     </View>
   );
 }
