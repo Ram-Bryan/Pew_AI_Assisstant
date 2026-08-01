@@ -39,6 +39,7 @@ CREATE TABLE providers (
   id INTEGER PRIMARY KEY,
   id_app INTEGER NOT NULL UNIQUE REFERENCES apps(id),
   api_base_url TEXT NOT NULL,
+  supports_tool_calling BOOLEAN NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
 );
 
@@ -76,9 +77,11 @@ CREATE TABLE messages (
   id_chat INTEGER NOT NULL REFERENCES chat(id),
   content TEXT,
   role TEXT NOT NULL CHECK(role IN ('user','ai','tool')),
+  id_tool_call INTEGER REFERENCES tool_calls(id),
   created_at INTEGER NOT NULL
 );
 CREATE INDEX idx_messages_chat ON messages(id_chat);
+CREATE INDEX idx_messages_tool_call ON messages(id_tool_call);
 
 -- Message status history
 CREATE TABLE historique_message_status (
@@ -113,7 +116,7 @@ CREATE INDEX idx_hist_tool_call_status ON historique_tool_calls_status(id_tool_c
 CREATE TABLE attachments (
   id INTEGER PRIMARY KEY,
   id_message INTEGER NOT NULL REFERENCES messages(id),
-  file_name TEXT NOT NULL,
+  file_name TEXT NOT NULL
 );
 CREATE INDEX idx_attachments_message ON attachments(id_message);
 
