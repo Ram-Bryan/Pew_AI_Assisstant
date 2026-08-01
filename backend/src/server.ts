@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { errorHandler, notFoundHandler } from './shared/middleware/error';
 import { logger } from './shared/utils/logger';
+import { appsRouter } from './domains/apps/routes';
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use('/api/apps', appsRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
