@@ -50,13 +50,15 @@ This document breaks the project into two parts — **Frontend (the Pew app)** a
 
 2.5 **No-tool guarantee, frontend side** — the send-message flow in this sprint never includes an enabled-apps list in the request, so the backend has nothing to call tools with. No special handling needed here — it falls out naturally from what's sent.
 
-2.6 **Voice input** — a record function using the on-device microphone; on stop, the recognized text populates the message input field before sending (implementation detail of on-device vs. dev-client recognizer to be finalized separately).
+2.6 **Switch dev environment to a custom dev client** — before touching voice input, run `expo prebuild` and build a debug variant via the same GitHub Actions pipeline used for the release APK. Install that build on the test phone once; from then on `expo start` targets it instead of the Expo Go app from the Play Store. This step exists because Expo Go cannot load the native speech-recognition module the next step depends on — it's expected, not a blocker.
 
-2.7 **Voice output** — after inserting an AI reply, a function passes its text to the on-device speech synthesizer, gated by a user-toggleable setting so it isn't forced on every reply.
+2.7 **Voice input** — a record function using the on-device microphone via the native speech-recognition module (`@react-native-voice/voice`, wrapping Android's built-in `SpeechRecognizer` — free, offline-capable, no API key); on stop, the recognized text populates the message input field before sending.
 
-2.8 **Chat management actions** — rename, archive, and delete each map to a single function that inserts the appropriate `historique_chat_status` row (or updates the `chat.name` field for rename); no chat is ever hard-deleted, only marked.
+2.8 **Voice output** — after inserting an AI reply, a function passes its text to the on-device speech synthesizer, gated by a user-toggleable setting so it isn't forced on every reply.
 
-2.9 **Token usage display** — after each reply, the backend's returned token counts are inserted into `historique_token_usage`. A separate read-only function aggregates these per model to drive the "tokens used/left" indicator.
+2.9 **Chat management actions** — rename, archive, and delete each map to a single function that inserts the appropriate `historique_chat_status` row (or updates the `chat.name` field for rename); no chat is ever hard-deleted, only marked.
+
+2.10 **Token usage display** — after each reply, the backend's returned token counts are inserted into `historique_token_usage`. A separate read-only function aggregates these per model to drive the "tokens used/left" indicator.
 
 **Sprint 2 is done when:** a user can hold a full back-and-forth conversation with voice in and out, see it persist across app restarts, and see a token counter update — with zero tool-calling behavior possible yet.
 
@@ -110,17 +112,19 @@ This document breaks the project into two parts — **Frontend (the Pew app)** a
 
 ### Sprint 3: AI and apps talking
 
-3.1 **Tool schema builder** — a function that takes the list of enabled apps sent by the phone and produces the corresponding tool definitions to attach to the outgoing LLM request. Apps with no matching tool integration are simply skipped, not errored on.
+3.1 **Provider tool-call adapters** — not one adapter per provider, one per *request/response format*. OpenAI, DeepSeek, Groq, Mistral, and OpenRouter share the same tool-calling shape, so a single "OpenAI-compatible" adapter serves all of them; Anthropic needs its own adapter, since its format differs. Each adapter exposes the same three operations — build the outgoing tools payload, parse a tool-call out of that provider's response, and build the tool-result message to send back — so the agent loop below never has provider-specific logic in it. Build only the OpenAI and Anthropic adapters this sprint (one shared-format case, one bespoke case); Gemini and Cohere get their own adapters in a later fast-follow, added without touching anything else. A provider only appears in the tool schema builder below once `providers.supports_tool_calling` is set for it — that flag is the single source of truth for "this provider's adapter is ready," so nothing is hardcoded into the builder itself.
 
-3.2 **Action connector layer** — one module per integrated app (or one shared MCP client where applicable, detailed separately) responsible only for actually performing an approved action — sending the Gmail, posting the message, etc. Nothing above this layer talks to a third-party API directly.
+3.2 **Tool schema builder** — a function that takes the list of enabled apps sent by the phone, filters to providers where `supports_tool_calling` is true, and produces the corresponding tool definitions (via the matching adapter from 3.1) to attach to the outgoing LLM request. Apps with no matching tool integration are simply skipped, not errored on.
 
-3.3 **Agent loop controller** — the core function of this sprint: sends the message and available tools to the LLM; if the LLM's response is a tool request, it does **not** call the connector layer yet — it stores the request (`tool_calls`, status `pending`) and returns that pending state to the phone instead.
+3.3 **Action connector layer** — one module per integrated app, responsible only for actually performing an approved action. Build **one connector this sprint: Gmail** — it proves the full request→approve→execute→result loop, which is what this sprint actually needs to validate; Messenger and WhatsApp get their own connector modules later, once Sprint 1's OAuth exchange is real rather than stubbed (building them against a stub now would be guessing at an auth flow that doesn't exist yet). Write the Gmail connector's real request-building logic now, but gate the actual outbound call behind a single backend config flag (e.g. `MOCK_ACTIONS=true`) that returns a canned result while true — so switching from simulated to real is flipping one flag, not rewriting the module.
 
-3.4 **Approve endpoint** — given a tool call id, invokes the matching module from 3.2, records the outcome (`completed` or `failed`), and returns a result suitable for the phone to insert as a `role='tool'` message.
+3.4 **Agent loop controller** — the core function of this sprint: sends the message and available tools to the LLM through the matching adapter; if the LLM's response is a tool request, the adapter parses it into a canonical form and the loop does **not** call the connector layer yet — it stores the request (`tool_calls`, status `pending`) and returns that pending state to the phone instead.
 
-3.5 **Reject endpoint** — given a tool call id, records status `rejected` and returns a fixed rejection payload, so the frontend always has something concrete to insert as the `role='tool'` message.
+3.5 **Approve endpoint** — given a tool call id, invokes the matching module from 3.3, records the outcome (`completed` or `failed`), and returns a result — built back into the right provider shape via the same adapter from 3.1 — suitable for the phone to insert as a `role='tool'` message.
 
-3.6 **Chained-call guardrail** — inside the agent loop controller, a running counter caps how many tool calls can chain within a single user turn; once hit, the loop stops and returns whatever answer the AI can give plus a note that the limit was reached, rather than looping indefinitely.
+3.6 **Reject endpoint** — given a tool call id, records status `rejected` and returns a fixed rejection payload, so the frontend always has something concrete to insert as the `role='tool'` message.
+
+3.7 **Chained-call guardrail** — inside the agent loop controller, a running counter caps how many tool calls can chain within a single user turn; once hit, the loop stops and returns whatever answer the AI can give plus a note that the limit was reached, rather than looping indefinitely.
 
 **Sprint 3 is done when:** the AI can propose an action, nothing executes without an explicit approve call, every approve/reject produces a message the AI can react to, and no single user turn can trigger unbounded tool calls.
 
