@@ -4,6 +4,7 @@ import cors from 'cors';
 import { errorHandler, notFoundHandler } from './shared/middleware/error';
 import { logger } from './shared/utils/logger';
 import { appsRouter } from './domains/apps/routes';
+import { providersRouter } from './domains/providers/routes';
 
 const app = express();
 app.use(cors());
@@ -14,6 +15,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/apps', appsRouter);
+app.use('/api/providers', providersRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
