@@ -46,3 +46,5 @@ tree.ps1
 tree.txt
 
 /docs/ai
+.agent
+opencode.json
