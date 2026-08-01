@@ -39,7 +39,6 @@ CREATE TABLE providers (
   id INTEGER PRIMARY KEY,
   id_app INTEGER NOT NULL UNIQUE REFERENCES apps(id),
   api_base_url TEXT NOT NULL,
-  supports_tool_calling BOOLEAN NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
 );
 

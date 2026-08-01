@@ -55,15 +55,15 @@ INSERT INTO apps (id, name, description, icon, auth_type) VALUES
 -- this column, not a hardcoded list — set it to 0 for any provider whose
 -- adapter is later removed or unsupported.
 -- ---------------------------------------------------------------------
-INSERT INTO providers (id, id_app, api_base_url, supports_tool_calling, created_at) VALUES
-  (1, 1,  'https://api.openai.com/v1',                             1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (2, 2,  'https://api.anthropic.com/v1',                          1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (3, 3,  'https://api.deepseek.com/v1',                           1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (4, 7,  'https://generativelanguage.googleapis.com/v1beta',      1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (5, 8,  'https://api.groq.com/openai/v1',                        1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (6, 9,  'https://api.mistral.ai/v1',                             1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (7, 10, 'https://openrouter.ai/api/v1',                          1, CAST(strftime('%s','now') AS INTEGER) * 1000),
-  (8, 11, 'https://api.cohere.com/v1',                             1, CAST(strftime('%s','now') AS INTEGER) * 1000);
+INSERT INTO providers (id, id_app, api_base_url, created_at) VALUES
+  (1, 1,  'https://api.openai.com/v1',                              CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (2, 2,  'https://api.anthropic.com/v1',                           CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (3, 3,  'https://api.deepseek.com/v1',                            CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (4, 7,  'https://generativelanguage.googleapis.com/v1beta',       CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (5, 8,  'https://api.groq.com/openai/v1',                         CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (6, 9,  'https://api.mistral.ai/v1',                              CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (7, 10, 'https://openrouter.ai/api/v1',                           CAST(strftime('%s','now') AS INTEGER) * 1000),
+  (8, 11, 'https://api.cohere.com/v1',                              CAST(strftime('%s','now') AS INTEGER) * 1000);
 
 -- ---------------------------------------------------------------------
 -- Initial app status — everything starts disabled until the user
