@@ -31,18 +31,18 @@ INSERT INTO status_tool_call (id, label) VALUES
 -- ---------------------------------------------------------------------
 -- Apps registry — AI providers first, then integrations
 -- ---------------------------------------------------------------------
-INSERT INTO apps (id, name, description, icon, auth_type) VALUES
-  (1,  'OpenAI',        'GPT models',                          'openai',     'api_key'),
-  (2,  'Anthropic',     'Claude models',                       'anthropic',  'api_key'),
-  (3,  'DeepSeek',      'DeepSeek models',                     'deepseek',   'api_key'),
-  (4,  'Gmail',         'Send and read email',                 'gmail',      'oauth'),
-  (5,  'Messenger',     'Send messages',                       'messenger',  'oauth'),
-  (6,  'WhatsApp',      'Send messages',                       'whatsapp',   'oauth'),
-  (7,  'Google Gemini', 'Gemini models, free tier available',  'gemini',     'api_key'),
-  (8,  'Groq',          'Fast inference, generous free tier',  'groq',       'api_key'),
-  (9,  'Mistral AI',    'Mistral models, free tier available', 'mistral',    'api_key'),
-  (10, 'OpenRouter',    'Aggregates many free + paid models',  'openrouter', 'api_key'),
-  (11, 'Cohere',        'Command models, free trial key',      'cohere',     'api_key');
+INSERT INTO apps (id, name, description, icon, auth_type, docs) VALUES
+  (1,  'OpenAI',        'GPT models',                          'openai',     'api_key', NULL),
+  (2,  'Anthropic',     'Claude models',                       'anthropic',  'api_key', NULL),
+  (3,  'DeepSeek',      'DeepSeek models',                     'deepseek',   'api_key', NULL),
+  (4,  'Gmail',         'Send and read email',                 'gmail',      'oauth',   'https://developers.google.com/workspace/guides/create-credentials'),
+  (5,  'Messenger',     'Send messages',                       'messenger',  'api_key',   'https://developers.facebook.com/documentation/business-messaging/messenger-platform/getting-started/quick-start'),
+  (6,  'WhatsApp',      'Send messages',                       'whatsapp',   'api_key',   'https://developers.facebook.com/documentation/business-messaging/whatsapp/access-tokens/'),
+  (7,  'Google Gemini', 'Gemini models, free tier available',  'gemini',     'api_key', NULL),
+  (8,  'Groq',          'Fast inference, generous free tier',  'groq',       'api_key', NULL),
+  (9,  'Mistral AI',    'Mistral models, free tier available', 'mistral',    'api_key', NULL),
+  (10, 'OpenRouter',    'Aggregates many free + paid models',  'openrouter', 'api_key', NULL),
+  (11, 'Cohere',        'Command models, free trial key',      'cohere',     'api_key', NULL);
 
 -- ---------------------------------------------------------------------
 -- Providers — subset of apps that are AI model providers

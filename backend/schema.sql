@@ -17,12 +17,15 @@ CREATE TABLE status_tool_call (
 );
 
 -- Apps (all integrations)
+-- connect_url: provider-side authorization/consent URL for oauth apps;
+-- NULL for api_key apps (they connect by entering a key).
 CREATE TABLE apps (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   icon TEXT,
-  auth_type TEXT NOT NULL CHECK(auth_type IN ('api_key','oauth'))
+  auth_type TEXT NOT NULL CHECK(auth_type IN ('api_key','oauth')),
+  docs TEXT
 );
 
 -- App enable/disable history
