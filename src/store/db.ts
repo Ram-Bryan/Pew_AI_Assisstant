@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { seedDatabase } from '../domains/apps/seed';
 import { MIGRATIONS } from './migrations';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -22,6 +23,7 @@ async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
     });
     await db.execAsync(`PRAGMA user_version = ${version};`);
   }
+  await seedDatabase(db);
   if (__DEV__) {
     const tables = await db.getAllAsync<{ name: string }>(
       "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"
