@@ -45,6 +45,9 @@ yarn-error.*
 tree.ps1
 tree.txt
 
+# git worktrees
+.worktrees/
+
 /docs/ai
 .agent
 opencode.json
