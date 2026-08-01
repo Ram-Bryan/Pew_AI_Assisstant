@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDb } from '../../store/db';
-import { verifyCredential } from './api';
+import { exchangeOAuth, verifyCredential } from './api';
 import * as secureStorage from './secureStorage';
 import { listApps, setAppEnabled } from './store';
 
@@ -39,6 +39,21 @@ export function useConnectApiKey() {
       const db = await getDb();
       await setAppEnabled(db, appId, true);
       return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['apps'] });
+    },
+  });
+}
+
+export function useConnectOAuth() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ appId }: { appId: number }) => {
+      const tokens = await exchangeOAuth(appId, 'stub-oauth-code');
+      await secureStorage.saveTokenPair(appId, tokens);
+      const db = await getDb();
+      await setAppEnabled(db, appId, true);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apps'] });

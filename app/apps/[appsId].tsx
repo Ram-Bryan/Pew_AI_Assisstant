@@ -4,7 +4,36 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import { AppToggle } from '../../src/domains/apps/components/AppToggle';
 import { CredentialModal } from '../../src/domains/apps/components/CredentialModal';
 import { SEED_APPS } from '../../src/constants/apps';
-import { useAppsList } from '../../src/domains/apps/hooks';
+import { useAppsList, useConnectOAuth } from '../../src/domains/apps/hooks';
+import { showToast } from '../../src/services/toast';
+
+function ConnectOAuthButton({ appId }: { appId: number }) {
+  const connect = useConnectOAuth();
+  const handleConnect = async () => {
+    try {
+      await connect.mutateAsync({ appId });
+      showToast('Connected');
+    } catch {}
+  };
+  return (
+    <View>
+      <Pressable
+        className="mt-6 rounded-xl bg-primary py-3"
+        onPress={handleConnect}
+        disabled={connect.isPending}
+      >
+        <Text className="text-center font-semibold text-white">
+          {connect.isPending ? 'Connecting…' : 'Connect'}
+        </Text>
+      </Pressable>
+      {connect.isError ? (
+        <Text className="mt-2 text-center text-sm text-red-500">
+          Could not connect. Try again.
+        </Text>
+      ) : null}
+    </View>
+  );
+}
 
 export default function AppDetailScreen() {
   const { appsId } = useLocalSearchParams<{ appsId: string }>();
@@ -32,6 +61,7 @@ export default function AppDetailScreen() {
         </Pressable>
       ) : null}
       <AppToggle app={app} />
+      {app.auth_type === 'oauth' ? <ConnectOAuthButton appId={app.id} /> : null}
       {app.auth_type === 'api_key' ? (
         <Pressable
           className="mt-6 rounded-xl bg-primary py-3"
