@@ -9,12 +9,13 @@ interface TdlCardProps {
     onEdit: (taskId: number) => void;
 }
 
-export function TdlCard({ task, onDelete }: TdlCardProps) {
+export function TdlCard({ task, onDelete, onEdit }: TdlCardProps) {
     const [done, setDone] = useState(task.done);
 
     return (
 
         <View>
+
             <TextInput value={task.content} onChangeText={()=>{onEdit(task.id)}} className="border border-gray-300 rounded-lg px-4 py-3 text-base bg-white"></TextInput>
             {/* <Text>{task.content}</Text> */}
             <Pressable onPress={() => {setDone(!done)}} >

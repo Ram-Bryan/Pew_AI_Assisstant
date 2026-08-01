@@ -15,6 +15,5 @@ export function deleteTask(todos: Task[], id:number){
 }
 
 export function editTask(todos: Task[], id: number, content: string){
-    todos[id].content = content
-    return todos;
+    return todos.map(task => task.id === id ? {...task, content: content} : task);
 }

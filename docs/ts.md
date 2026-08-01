@@ -14,7 +14,6 @@ const user = {
 };
 console.log(user.name);      // "Alice"
 
-
 ```
 We use **export** so that we can use it on other files
 
@@ -159,6 +158,23 @@ const writeFile = async () => {
   const content = 'Hello world';
   
   await FileSystem.writeAsStringAsync(path, content);
+};
+
+
+```
+
+## Spreading
+
+```ts
+
+// Takes all the object property but only change one thing:
+{...task, content: content}
+
+// If manually copying:
+const updatedTask = {
+    id: task.id,
+    content: "New content",
+    done: task.done
 };
 
 
