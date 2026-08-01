@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDb } from '../../store/db';
+import { discoverModels } from '../providers/api';
 import { exchangeOAuth, verifyCredential } from './api';
 import * as secureStorage from './secureStorage';
-import { listApps, setAppEnabled } from './store';
+import { cacheProviderModels, listApps, setAppEnabled } from './store';
 
 export function useAppsList() {
   return useQuery({
@@ -38,6 +39,10 @@ export function useConnectApiKey() {
       await secureStorage.saveApiKey(appId, apiKey);
       const db = await getDb();
       await setAppEnabled(db, appId, true);
+      if (result.note == null) {
+        const models = await discoverModels(appId, apiKey).catch(() => []);
+        await cacheProviderModels(db, appId, models);
+      }
       return result;
     },
     onSuccess: () => {
