@@ -31,4 +31,4 @@ async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
     console.log('[db] migrated tables:', tables.map((t) => t.name).join(', '));
   }
   return db;
-}
+} 
